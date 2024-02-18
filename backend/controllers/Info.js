@@ -1,7 +1,6 @@
 const InfoModel = require('../model/info')
 
 // creating new pet
-
 exports.create = async( req, res) => {
     const newPet = new InfoModel(req.body);
     await newPet.save().then(data => {
@@ -16,23 +15,60 @@ exports.create = async( req, res) => {
     });
 };
 
+// receiving all the information
+exports.findAllDetails = async(req,res) => {
+    try{
+        const pet = await InfoModel.find();
+        res.status(200).json(pet);
+    }catch(error){
+        res.status(404).json({
+            message: error.message
+        });
+    }
+}
 
-// app.post('/newPet', async(req,res) => {
-//     try {
-//         console.log("inside newPet");
-//         const newPet = new InfoModel(req.body);
-//         const savedPet = await newPet.save();
-//         res.status(201).json(savedPet);
-//     } catch(error){
-//         console.error(error);
-//         res.status(500).json({error: 'Internal Server Error'});
-//     }
-// });
+// update the pet information using the id
+exports.update = async(req,res) => {
+    if(!req.body){
+        res.status(400).send({
+            message: "Data to update can not be empty!"
+        });
+    }
 
-// app.get('/', (req, res) => {
-//     res.send('Hi');
-// });
+    const id = req.params.id;
+
+    await InfoModel.findByIdAndUpdate(id, req.body,{
+        useFindAndModify: false}).then(data => {
+            if(!data){
+                res.status(404).send({
+                    message: 'Pet not found.'
+                });
+            }else{
+                res.send({message: "Pet updated successfully."})
+            }
+        }).catch(err => {
+            res.status(500).send({
+                message: err.message
+            });
+        });
+};
 
 
-
-// module.exports =  app;
+// Delete a pet with the id
+exports.destroy = async (req, res) => {
+    await InfoModel.findByIdAndDelete(req.params.id).then(data => {
+        if (!data) {
+          res.status(404).send({
+            message: `Pet not found.`
+          });
+        } else {
+          res.send({
+            message: "Pet deleted successfully!"
+          });
+        }
+    }).catch(err => {
+        res.status(500).send({
+          message: err.message
+        });
+    });
+};
